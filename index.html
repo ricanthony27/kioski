@@ -1,116 +1,147 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
- 
-    <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+```
+<meta charset="UTF-8">
 
-    <title>ESP32 Firebase Chat</title>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-    <style>
+<title>ESP32 Firebase Chat</title>
 
-        * {
-            box-sizing: border-box;
-        }
+<style>
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f3f6;
-        }
+    * {
+        box-sizing: border-box;
+    }
 
-        .container {
-            width: 95%;
-            max-width: 700px;
-            margin: 40px auto;
-        }
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f1f3f6;
+    }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    .container {
+        width: 95%;
+        max-width: 700px;
+        margin: 40px auto;
+    }
 
-        .status {
-            background: white;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
 
-        .chat {
-            height: 500px;
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-        }
+    .status {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
 
-        .message {
-            max-width: 80%;
-            margin: 10px 0;
-            padding: 10px 14px;
-            border-radius: 12px;
-            word-wrap: break-word;
-        }
+    .chat {
+        height: 500px;
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
 
-        .esp32 {
-            background: #e7f0ff;
-            margin-right: auto;
-        }
+        display: flex;
+        flex-direction: column;
+    }
 
-        .web {
-            background: #e7ffe7;
-            margin-left: auto;
-        }
+    .message {
+        max-width: 80%;
+        margin: 8px 0;
+        padding: 10px 14px;
+        border-radius: 12px;
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+    }
 
-        .sender {
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
+    /* ESP32 messages - LEFT */
+    .esp32 {
+        background: #e7f0ff;
+        margin-right: auto;
+        margin-left: 0;
+    }
 
-        .time {
-            font-size: 11px;
-            color: #777;
-            margin-top: 5px;
-        }
+    /* Web messages - RIGHT */
+    .web {
+        background: #e7ffe7;
+        margin-left: auto;
+        margin-right: 0;
+    }
 
-        .input-area {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
+    .sender {
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
 
-        input {
-            flex: 1;
-            padding: 14px;
-            border-radius: 8px;
-            border: 1px solid #bbb;
-            font-size: 16px;
-        }
+    .text {
+        white-space: pre-wrap;
+    }
 
-        button {
-            padding: 14px 22px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-        }
+    .time {
+        font-size: 11px;
+        color: #777;
+        margin-top: 5px;
+    }
 
-        .send-button {
-            background: #222;
-            color: white;
-        }
+    .input-area {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
 
-        .clear-button {
-            background: #ddd;
-        }
+    input {
+        flex: 1;
+        padding: 14px;
+        border-radius: 8px;
+        border: 1px solid #bbb;
+        font-size: 16px;
+        outline: none;
+    }
 
-    </style>
+    input:focus {
+        border-color: #555;
+    }
+
+    button {
+        padding: 14px 22px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .send-button {
+        background: #222;
+        color: white;
+    }
+
+    .send-button:hover {
+        background: #444;
+    }
+
+    .send-button:disabled {
+        background: #999;
+        cursor: not-allowed;
+    }
+
+    .empty {
+        text-align: center;
+        color: #777;
+        margin: auto;
+    }
+
+</style>
+```
 
 </head>
 
@@ -118,35 +149,42 @@
 
 <div class="container">
 
-    <h1>ESP32 Firebase Chat</h1>
+```
+<h1>ESP32 Firebase Chat</h1>
 
-    <div id="status" class="status">
-        Connecting...
-    </div>
+<div id="status" class="status">
+    Connecting...
+</div>
 
-    <div id="chat" class="chat">
-        <p>No messages yet.</p>
-    </div>
+<div id="chat" class="chat">
 
-    <div class="input-area">
-
-        <input
-            id="messageInput"
-            type="text"
-            placeholder="Type a message..."
-        >
-
-        <button
-            class="send-button"
-            onclick="sendMessage()"
-        >
-            Send
-        </button>
-
-    </div>
+    <p class="empty">
+        Loading messages...
+    </p>
 
 </div>
 
+<div class="input-area">
+
+    <input
+        id="messageInput"
+        type="text"
+        placeholder="Type a message..."
+        autocomplete="off"
+    >
+
+    <button
+        id="sendButton"
+        class="send-button"
+        onclick="sendMessage()"
+    >
+        Send
+    </button>
+
+</div>
+```
+
+</div>
 
 <script type="module">
 
@@ -154,14 +192,20 @@
     // FIREBASE IMPORTS
     // =========================================
 
-    import { initializeApp }
+    import {
+        initializeApp
+    }
     from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
     import {
         getDatabase,
         ref,
         push,
-        onValue
+        onChildAdded,
+        onValue,
+        query,
+        orderByChild,
+        serverTimestamp
     }
     from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
@@ -172,7 +216,8 @@
 
     const firebaseConfig = {
 
-        apiKey: "AIzaSyAp-DmDVrXiWPy4RqibXf6m-I41PY8J8fw",
+        apiKey:
+            "AIzaSyAp-DmDVrXiWPy4RqibXf6m-I41PY8J8fw",
 
         authDomain:
             "kioski-f08e3.firebaseapp.com",
@@ -215,143 +260,210 @@
 
 
     // =========================================
-    // REAL-TIME LISTENER
+    // ORDER MESSAGES BY TIMESTAMP
     // =========================================
 
-    onValue(
-        messagesRef,
+    const orderedMessages =
+        query(
+            messagesRef,
+            orderByChild("timestamp")
+        );
+
+
+    // =========================================
+    // HTML ELEMENTS
+    // =========================================
+
+    const chat =
+        document.getElementById("chat");
+
+    const input =
+        document.getElementById("messageInput");
+
+    const sendButton =
+        document.getElementById("sendButton");
+
+    const status =
+        document.getElementById("status");
+
+
+    // =========================================
+    // TRACK MESSAGE COUNT
+    // =========================================
+
+    let messageCount = 0;
+
+
+    // =========================================
+    // REAL-TIME MESSAGE LISTENER
+    // =========================================
+
+    onChildAdded(
+        orderedMessages,
         (snapshot) => {
 
-            const chat =
-                document.getElementById("chat");
-
-            chat.innerHTML = "";
-
-            const data =
+            const message =
                 snapshot.val();
 
-
-            if (!data) {
-
-                chat.innerHTML =
-                    "<p>No messages yet.</p>";
-
+            if (!message) {
                 return;
             }
 
 
-            const messages =
-                Object.entries(data)
-                .map(([id, message]) => ({
-                    id,
-                    ...message
-                }));
+            // Remove "Loading messages..."
+            // or "No messages yet."
+            if (messageCount === 0) {
+
+                chat.innerHTML = "";
+
+            }
 
 
-            // Sort oldest -> newest
-            messages.sort(
-                (a, b) =>
-                    (a.timestamp || 0) -
-                    (b.timestamp || 0)
-            );
+            messageCount++;
 
 
-            messages.forEach(
-                message => {
+            // =================================
+            // MESSAGE CONTAINER
+            // =================================
 
-                    const div =
-                        document.createElement("div");
-
-
-                    div.className =
-                        "message "
-                        + (
-                            message.sender === "ESP32"
-                            ? "esp32"
-                            : "web"
-                        );
+            const div =
+                document.createElement("div");
 
 
-                    const sender =
-                        document.createElement("div");
+            // ESP32 = left
+            // Everything else = right
 
-                    sender.className =
-                        "sender";
+            if (
+                message.sender &&
+                message.sender.toUpperCase() === "ESP32"
+            ) {
 
-                    sender.textContent =
-                        message.sender;
+                div.className =
+                    "message esp32";
 
+            } else {
 
-                    const text =
-                        document.createElement("div");
+                div.className =
+                    "message web";
 
-                    text.textContent =
-                        message.text;
-
-
-                    const time =
-                        document.createElement("div");
-
-                    time.className =
-                        "time";
+            }
 
 
-                    if (message.timestamp) {
+            // =================================
+            // SENDER
+            // =================================
 
-                        time.textContent =
-                            new Date(
-                                message.timestamp
-                            ).toLocaleString();
+            const sender =
+                document.createElement("div");
 
-                    }
+            sender.className =
+                "sender";
+
+            sender.textContent =
+                message.sender || "Unknown";
 
 
-                    div.appendChild(sender);
+            // =================================
+            // MESSAGE TEXT
+            // =================================
 
-                    div.appendChild(text);
+            const text =
+                document.createElement("div");
 
-                    div.appendChild(time);
+            text.className =
+                "text";
 
-                    chat.appendChild(div);
+            text.textContent =
+                message.text || "";
 
-                }
-            );
 
+            // =================================
+            // TIMESTAMP
+            // =================================
+
+            const time =
+                document.createElement("div");
+
+            time.className =
+                "time";
+
+
+            if (
+                message.timestamp &&
+                typeof message.timestamp === "number"
+            ) {
+
+                time.textContent =
+                    new Date(
+                        message.timestamp
+                    ).toLocaleString();
+
+            } else {
+
+                time.textContent =
+                    "Time unavailable";
+
+            }
+
+
+            // =================================
+            // BUILD MESSAGE
+            // =================================
+
+            div.appendChild(sender);
+
+            div.appendChild(text);
+
+            div.appendChild(time);
+
+            chat.appendChild(div);
+
+
+            // =================================
+            // SCROLL TO NEWEST MESSAGE
+            // =================================
 
             chat.scrollTop =
                 chat.scrollHeight;
 
         },
+
         (error) => {
 
             console.error(
-                "Firebase listener error:",
+                "Firebase message listener error:",
                 error
             );
+
+            status.textContent =
+                "🔴 Failed to load messages";
 
         }
     );
 
 
     // =========================================
-    // SEND MESSAGE WEB -> FIREBASE
+    // SEND MESSAGE WEB → FIREBASE
     // =========================================
 
     window.sendMessage =
         async function () {
 
-            const input =
-                document.getElementById(
-                    "messageInput"
-                );
-
             const text =
                 input.value.trim();
 
 
+            // Don't send empty messages
             if (!text) {
+
                 return;
+
             }
+
+
+            // Prevent double-click sending
+            sendButton.disabled =
+                true;
 
 
             try {
@@ -364,15 +476,18 @@
 
                         text: text,
 
+                        // Firebase server timestamp
                         timestamp:
-                            Date.now()
+                            serverTimestamp()
 
                     }
                 );
 
 
+                // Clear input
                 input.value = "";
 
+                // Put cursor back
                 input.focus();
 
 
@@ -386,6 +501,12 @@
                 alert(
                     "Failed to send message."
                 );
+
+            } finally {
+
+                sendButton.disabled =
+                    false;
+
             }
 
         };
@@ -395,41 +516,39 @@
     // ENTER KEY
     // =========================================
 
-    document
-        .getElementById("messageInput")
-        .addEventListener(
-            "keydown",
-            (event) => {
+    input.addEventListener(
+        "keydown",
+        (event) => {
 
-                if (
-                    event.key === "Enter"
-                ) {
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
 
-                    sendMessage();
+                event.preventDefault();
 
-                }
+                sendMessage();
 
             }
-        );
+
+        }
+    );
 
 
     // =========================================
-    // CONNECTION STATUS
+    // FIREBASE CONNECTION STATUS
     // =========================================
 
     const connectedRef =
-        ref(database, ".info/connected");
+        ref(
+            database,
+            ".info/connected"
+        );
 
 
     onValue(
         connectedRef,
         (snapshot) => {
-
-            const status =
-                document.getElementById(
-                    "status"
-                );
-
 
             if (
                 snapshot.val() === true
@@ -441,7 +560,7 @@
             } else {
 
                 status.textContent =
-                    "🔴 Disconnected";
+                    "🔴 Disconnected from Firebase";
 
             }
 
