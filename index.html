@@ -1,1 +1,140 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ESP32 Firebase Chat</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            padding: 30px;
+        }
+
+        .box {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        #status {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: #eee;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h1>ESP32 Firebase Chat</h1>
+
+    <div id="status">
+        Connecting to Firebase...
+    </div>
+
+    <p>
+        Firebase connection test.
+    </p>
+
+</div>
+
+
+<!-- Firebase -->
+<script type="module">
+
+    import { initializeApp }
+        from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+    import {
+        getDatabase,
+        ref,
+        onValue
+    }
+    from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+    // ======================================
+    // YOUR FIREBASE CONFIG
+    // ======================================
+
+    const firebaseConfig = {
+
+        apiKey: "AIzaSyAp-DmDVrXiWPy4RqibXf6m-I41PY8J8fw",
+
+        authDomain:
+            "kioski-f08e3.firebaseapp.com",
+
+        databaseURL:
+            "https://kioski-f08e3-default-rtdb.firebaseio.com",
+
+        projectId:
+            "kioski-f08e3",
+
+        storageBucket:
+            "kioski-f08e3.firebasestorage.app",
+
+        messagingSenderId:
+            "427786544468",
+
+        appId:
+            "1:427786544468:web:22c835d1f760106f6e94c1"
+    };
+
+
+    // ======================================
+    // INITIALIZE FIREBASE
+    // ======================================
+
+    const app =
+        initializeApp(firebaseConfig);
+
+
+    const database =
+        getDatabase(app);
+
+
+    // ======================================
+    // TEST DATABASE CONNECTION
+    // ======================================
+
+    const connectedRef =
+        ref(database, ".info/connected");
+
+
+    onValue(
+        connectedRef,
+        (snapshot) => {
+
+            const connected =
+                snapshot.val();
+
+            const status =
+                document.getElementById("status");
+
+
+            if (connected === true) {
+
+                status.textContent =
+                    "✅ Connected to Firebase";
+
+            } else {
+
+                status.textContent =
+                    "❌ Not connected to Firebase";
+            }
+        }
+    );
+
+</script>
+
+</body>
+</html>
