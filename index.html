@@ -1,70 +1,174 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>ESP32 Firebase Chat</title>
 
     <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
+            margin: 0;
             font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            padding: 30px;
+            background: #f1f3f6;
         }
 
-        .box {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
+        .container {
+            width: 95%;
+            max-width: 700px;
+            margin: 40px auto;
         }
 
-        #status {
-            padding: 10px;
+        h1 {
+            text-align: center;
             margin-bottom: 20px;
-            border-radius: 8px;
-            background: #eee;
         }
+
+        .status {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chat {
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .message {
+            max-width: 80%;
+            margin: 10px 0;
+            padding: 10px 14px;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+
+        .esp32 {
+            background: #e7f0ff;
+            margin-right: auto;
+        }
+
+        .web {
+            background: #e7ffe7;
+            margin-left: auto;
+        }
+
+        .sender {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .time {
+            font-size: 11px;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        input {
+            flex: 1;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #bbb;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 14px 22px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .send-button {
+            background: #222;
+            color: white;
+        }
+
+        .clear-button {
+            background: #ddd;
+        }
+
     </style>
+
 </head>
 
 <body>
 
-<div class="box">
+<div class="container">
 
     <h1>ESP32 Firebase Chat</h1>
 
-    <div id="status">
-        Connecting to Firebase...
+    <div id="status" class="status">
+        Connecting...
     </div>
 
-    <p>
-        Firebase connection test.
-    </p>
+    <div id="chat" class="chat">
+        <p>No messages yet.</p>
+    </div>
+
+    <div class="input-area">
+
+        <input
+            id="messageInput"
+            type="text"
+            placeholder="Type a message..."
+        >
+
+        <button
+            class="send-button"
+            onclick="sendMessage()"
+        >
+            Send
+        </button>
+
+    </div>
 
 </div>
 
 
-<!-- Firebase -->
 <script type="module">
 
+    // =========================================
+    // FIREBASE IMPORTS
+    // =========================================
+
     import { initializeApp }
-        from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
     import {
         getDatabase,
         ref,
+        push,
         onValue
     }
     from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
 
-    // ======================================
-    // YOUR FIREBASE CONFIG
-    // ======================================
+    // =========================================
+    // FIREBASE CONFIG
+    // =========================================
 
     const firebaseConfig = {
 
@@ -87,24 +191,231 @@
 
         appId:
             "1:427786544468:web:22c835d1f760106f6e94c1"
+
     };
 
 
-    // ======================================
+    // =========================================
     // INITIALIZE FIREBASE
-    // ======================================
+    // =========================================
 
     const app =
         initializeApp(firebaseConfig);
-
 
     const database =
         getDatabase(app);
 
 
-    // ======================================
-    // TEST DATABASE CONNECTION
-    // ======================================
+    // =========================================
+    // DATABASE REFERENCE
+    // =========================================
+
+    const messagesRef =
+        ref(database, "messages");
+
+
+    // =========================================
+    // REAL-TIME LISTENER
+    // =========================================
+
+    onValue(
+        messagesRef,
+        (snapshot) => {
+
+            const chat =
+                document.getElementById("chat");
+
+            chat.innerHTML = "";
+
+            const data =
+                snapshot.val();
+
+
+            if (!data) {
+
+                chat.innerHTML =
+                    "<p>No messages yet.</p>";
+
+                return;
+            }
+
+
+            const messages =
+                Object.entries(data)
+                .map(([id, message]) => ({
+                    id,
+                    ...message
+                }));
+
+
+            // Sort oldest -> newest
+            messages.sort(
+                (a, b) =>
+                    (a.timestamp || 0) -
+                    (b.timestamp || 0)
+            );
+
+
+            messages.forEach(
+                message => {
+
+                    const div =
+                        document.createElement("div");
+
+
+                    div.className =
+                        "message "
+                        + (
+                            message.sender === "ESP32"
+                            ? "esp32"
+                            : "web"
+                        );
+
+
+                    const sender =
+                        document.createElement("div");
+
+                    sender.className =
+                        "sender";
+
+                    sender.textContent =
+                        message.sender;
+
+
+                    const text =
+                        document.createElement("div");
+
+                    text.textContent =
+                        message.text;
+
+
+                    const time =
+                        document.createElement("div");
+
+                    time.className =
+                        "time";
+
+
+                    if (message.timestamp) {
+
+                        time.textContent =
+                            new Date(
+                                message.timestamp
+                            ).toLocaleString();
+
+                    }
+
+
+                    div.appendChild(sender);
+
+                    div.appendChild(text);
+
+                    div.appendChild(time);
+
+                    chat.appendChild(div);
+
+                }
+            );
+
+
+            chat.scrollTop =
+                chat.scrollHeight;
+
+        },
+        (error) => {
+
+            console.error(
+                "Firebase listener error:",
+                error
+            );
+
+        }
+    );
+
+
+    // =========================================
+    // SEND MESSAGE WEB -> FIREBASE
+    // =========================================
+
+    window.sendMessage =
+        async function () {
+
+            const input =
+                document.getElementById(
+                    "messageInput"
+                );
+
+            const text =
+                input.value.trim();
+
+
+            if (!text) {
+                return;
+            }
+
+
+            try {
+
+                await push(
+                    messagesRef,
+                    {
+
+                        sender: "WEB",
+
+                        text: text,
+
+                        timestamp:
+                            Date.now()
+
+                    }
+                );
+
+
+                input.value = "";
+
+                input.focus();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Send error:",
+                    error
+                );
+
+                alert(
+                    "Failed to send message."
+                );
+            }
+
+        };
+
+
+    // =========================================
+    // ENTER KEY
+    // =========================================
+
+    document
+        .getElementById("messageInput")
+        .addEventListener(
+            "keydown",
+            (event) => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    sendMessage();
+
+                }
+
+            }
+        );
+
+
+    // =========================================
+    // CONNECTION STATUS
+    // =========================================
 
     const connectedRef =
         ref(database, ".info/connected");
@@ -114,27 +425,31 @@
         connectedRef,
         (snapshot) => {
 
-            const connected =
-                snapshot.val();
-
             const status =
-                document.getElementById("status");
+                document.getElementById(
+                    "status"
+                );
 
 
-            if (connected === true) {
+            if (
+                snapshot.val() === true
+            ) {
 
                 status.textContent =
-                    "✅ Connected to Firebase";
+                    "🟢 Connected to Firebase";
 
             } else {
 
                 status.textContent =
-                    "❌ Not connected to Firebase";
+                    "🔴 Disconnected";
+
             }
+
         }
     );
 
 </script>
 
 </body>
+
 </html>
